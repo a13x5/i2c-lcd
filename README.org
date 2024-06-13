@@ -1,1 +1,89 @@
 * i2c-lcd
+
+Really small library for working with ~HD44780U~ LCD with ~PCF8574T~ I2c
+expander card.
+
+Tested on Raspberry Pi 5.
+
+** Rationale
+
+My goal was to learn how to work with the LCD, since I wanted to use it in my
+project.
+
+Unfortunately there is not much of a documentation out there on how this actually
+works. Usually all manuals are like: "just use [[https://github.com/dbrgn/RPLCD][RPLCD]]".
+
+And if Python is not an option, you have to write all from scratch, this is
+exactly what I did here.
+
+** Using this code
+
+Just run ~make~ to build everything including example program.
+
+To check LCD's I2c bus and address the ~i2c-detect~ tool could be used.
+
+To get list of i2c buses (on RPi 5 ~i2c-1~ is the one connected to GPIO):
+
+#+begin_src sh
+  $ i2cdetect -l
+  i2c-1   i2c             Synopsys DesignWare I2C adapter         I2C adapter
+  i2c-11  i2c             107d508200.i2c                          I2C adapter
+  i2c-12  i2c             107d508280.i2c                          I2C adapter
+#+end_src
+
+To check exact I2c address the following command could be used:
+
+#+begin_src sh
+  $ i2cdetect -y 1
+      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+  00:                         -- -- -- -- -- -- -- --
+  10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  20: -- -- -- -- -- -- -- 27 -- -- -- -- -- -- -- --
+  30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+  70: -- -- -- -- -- -- -- --
+#+end_src
+
+In the example it's ~0x27~, the same is used in the [[file:example.c][example.c]].
+
+** LCD layout and operations
+
+*** Layout
+
+LCD layout with I2c expander card on the ~PCF8574T~ chip looks like this:
+
+|   8 |   7 |   6 |   5 |  4 | 3 |  2 |  1 |
+|-----+-----+-----+-----+----+---+----+----|
+| DB7 | DB6 | DB5 | DB4 | BL | E | RW | RS |
+
+As you can see only 4 data pins (~DB4-DB7~) are exposed, so display should be
+initialized in 4 bit mode.
+
+Backlight pin ~BL~ should be set to desired value on all operations. Otherwise
+it will be blinking.
+
+Pin ~E~ is used for clock and it's always used when data is transfered.
+
+~RW~ is used to set read or write operation. I use only write operations.
+
+And ~RS~ is used for setting data or instructions mode. High means data.
+
+*** Operations
+
+On Linux for interacting with I2c from userspace ~i2c-dev.h~ is used. It's
+described pretty thoroughly in the [[https://www.kernel.org/doc/Documentation/i2c/dev-interface][docs]].
+
+Before LCD could be used is should be initialized (in our case in 4bit mode).
+This is described in detail on pages 23 and 46 of HD44780 datasheet.
+
+After initializing all data should be transfered in 2 parts 4 bits each
+3 times with manual clocking. For details look and the page 22 of the datasheet.
+
+** References
+
+- [[file:HD44780-datasheet.pdf][HD44780 datasheet]]
+- [[https://www.arduino.cc/reference/en/libraries/liquidcrystal-i2c/][LiquidCrystal I2C]] library for Arduino
+- [[https://github.com/bitbank2/LCD1602][LCD1602]] library, which pursuits the same goals as I am.
+- [[https://github.com/dbrgn/RPLCD][RPLCD]] go to library for working with LCD on RPi

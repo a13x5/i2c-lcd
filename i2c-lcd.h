@@ -62,6 +62,7 @@
 
 #define LCD_DDRAM_ADDR_SET 0x80
 #define LCD_DDRAM_2ND_ROW_ADDR 0x40
+#define LCD_CGRAM_ADDR_SET 0x40
 
 typedef struct {
     int i2c_fd;
@@ -80,6 +81,7 @@ void return_home(lcd_config *cfg);
 void move_screen(lcd_config *cfg, unsigned int chars);
 void set_cursor(lcd_config *cfg, unsigned int col, unsigned int row);
 void apply_lcd_control(lcd_config *cfg);
+void cgram_write(lcd_config *cfg, unsigned int char_addr, unsigned char char_map[8]);
 lcd_config configure(char i2c_filename[], unsigned char i2c_addr);
 
 #endif

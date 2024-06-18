@@ -113,15 +113,25 @@ set_cursor(lcd_config *cfg, unsigned int col, unsigned int row)
     }
     
     switch (row) {
-    case 0:
+    case 1:
 	general_write(cfg, (LCD_DDRAM_ADDR_SET | col), LCD_MODE_CMD);
 	break;
-    case 1:
+    case 2:
 	general_write(cfg, (LCD_DDRAM_ADDR_SET | LCD_DDRAM_2ND_ROW_ADDR + col), LCD_MODE_CMD);
 	break;
     default:
 	printf("Row values 0 and 1 supported, received %d\n", row);
 	return;
+    }
+}
+
+void
+cgram_write(lcd_config *cfg, unsigned int char_addr, unsigned char char_map[8])
+{
+    char_addr &= 0x07;
+    general_write(cfg, (LCD_CGRAM_ADDR_SET | (char_addr << 3)), LCD_MODE_CMD);
+    for (int i = 0; i < 8; i++) {
+        general_write(cfg, char_map[i], LCD_MODE_DATA);
     }
 }
 

@@ -13,13 +13,13 @@ main(void)
     lcd_config cfg = configure("/dev/i2c-1", 0x27);
     init_lcd(&cfg);
     /*
-     * Printing simple strings and move them
+     * Printing simple strings and moving screen
      */
     char str1[] = "First line, which is longer than second";
     char str2[] = "Second line";
-    set_cursor(&cfg, 0, 1);
+    set_cursor(&cfg, 0, 2);
     string_write(&cfg, str2);
-    set_cursor(&cfg, 0, 0);
+    set_cursor(&cfg, 0, 1);
     sleep(1);
     string_write(&cfg, str1);
     sleep(1);
@@ -28,30 +28,46 @@ main(void)
     sleep(1);
     clear_display(&cfg);
     /*
-     * Low level commands to pring characters and move display
-     * Ref. HD44780 manual page 17.
+     * Custom characters
      */
-    general_write(&cfg, 0xBF, LCD_MODE_DATA);
-    general_write(&cfg, (LCD_SHIFT_SET | LCD_SHIFT_CURSOR | LCD_SHIFT_RIGHT), LCD_MODE_CMD);
-    general_write(&cfg, 0xFF, LCD_MODE_DATA);
-    general_write(&cfg, (LCD_SHIFT_SET | LCD_SHIFT_CURSOR | LCD_SHIFT_RIGHT), LCD_MODE_CMD);
-    general_write(&cfg, 0xFF, LCD_MODE_DATA);
-    general_write(&cfg, (LCD_SHIFT_SET | LCD_SHIFT_CURSOR | LCD_SHIFT_RIGHT), LCD_MODE_CMD);
-    general_write(&cfg, 0xFF, LCD_MODE_DATA);
-    sleep(3);
-    clear_display(&cfg);
+    unsigned char left_arrow_addr = 0x01;
+    unsigned char left_arrow[8] = {
+	0b00001,
+	0b00011,
+	0b00111,
+	0b01111,
+	0b00111,
+	0b00011,
+	0b00001,
+	0b00000
+    };
+    unsigned char right_arrow_addr = 0x02;
+    unsigned char right_arrow[8] = {
+        0b01000,
+        0b01100,
+        0b01110,
+        0b01111,
+        0b01110,
+        0b01100,
+        0b01000,
+        0b00000
+    };
+    cgram_write(&cfg, left_arrow_addr, left_arrow);
+    cgram_write(&cfg, right_arrow_addr, right_arrow);
+    init_lcd(&cfg);
     /*
-     * Funny pattern and blinking
+     * Random pattern and blinking
      */
     for (int i = 0; i < 16; i+=2) {
-	set_cursor(&cfg, i, 0);
-	general_write(&cfg, 0xFF, LCD_MODE_DATA);
-    }
-    for (int i = 1; i < 16; i+=2) {
 	set_cursor(&cfg, i, 1);
-	general_write(&cfg, 0xFF, LCD_MODE_DATA);
+	general_write(&cfg, left_arrow_addr, LCD_MODE_DATA);
+	general_write(&cfg, right_arrow_addr, LCD_MODE_DATA);
+	set_cursor(&cfg, i, 2);
+	general_write(&cfg, right_arrow_addr, LCD_MODE_DATA);
+	general_write(&cfg, left_arrow_addr, LCD_MODE_DATA);
     }
-    for (int i = 0; i < 5; i++) {
+    sleep(3);
+    for (int i = 0; i < 2; i++) {
 	clk_write(cfg.i2c_fd, LCD_BACKLIGHT_OFF);
 	sleep(1);
 	clk_write(cfg.i2c_fd, LCD_BACKLIGHT_ON);

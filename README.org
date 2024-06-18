@@ -54,9 +54,9 @@ In the example it's ~0x27~, the same is used in the [[file:example.c][example.c]
 
 LCD layout with I2c expander card on the ~PCF8574T~ chip looks like this:
 
-|   8 |   7 |   6 |   5 |  4 | 3 |  2 |  1 |
-|-----+-----+-----+-----+----+---+----+----|
-| DB7 | DB6 | DB5 | DB4 | BL | E | RW | RS |
+| 8 / 0x80 | 7 / 0x40 | 6 / 0x20 | 5 / 0x10 | 4 / 0x08 | 3 / 0x04 | 2 / 0x02 | 1 / 0x01 |
+|----------+----------+----------+----------+----------+----------+----------+----------|
+| DB7      | DB6      | DB5      | DB4      | BL       | E        | RW       | RS       |
 
 As you can see only 4 data pins (~DB4-DB7~) are exposed, so display should be
 initialized in 4 bit mode.
@@ -81,9 +81,26 @@ This is described in detail on pages 23 and 46 of HD44780 datasheet.
 After initializing all data should be transfered in 2 parts 4 bits each
 3 times with manual clocking. For details look and the page 22 of the datasheet.
 
+**** Custom characters
+~HD44780U~ has an ability to use custom characters (see the manual page 19).
+
+Custom characters are written into to CGRAM, so the have to be written each time
+display is restarted.
+
+Each character must be defined with specific 3 bit address (since only 8 custom
+characters are supported). Character map must consist of 8 chunks of 5 bit data.
+
+This stands for 5 dots to 8 lines which depict each character.
+
+To ease generation of such characters [[https://omerk.github.io/lcdchargen/][lcdchargen]] app could be used.
+
+After defining characters LCD should go over init cycle again to avoid any display
+artefacts.
+
 ** References
 
 - [[file:HD44780-datasheet.pdf][HD44780 datasheet]]
 - [[https://www.arduino.cc/reference/en/libraries/liquidcrystal-i2c/][LiquidCrystal I2C]] library for Arduino
 - [[https://github.com/bitbank2/LCD1602][LCD1602]] library, which pursuits the same goals as I am.
 - [[https://github.com/dbrgn/RPLCD][RPLCD]] go to library for working with LCD on RPi
+- [[https://omerk.github.io/lcdchargen/][lcdchargen]] tool to generate custom characters

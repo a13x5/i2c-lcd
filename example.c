@@ -54,7 +54,7 @@ main(void)
     };
     cgram_write(&cfg, left_arrow_addr, left_arrow);
     cgram_write(&cfg, right_arrow_addr, right_arrow);
-    init_lcd(&cfg);
+    return_home(&cfg);
     /*
      * Random pattern and blinking
      */

@@ -94,8 +94,7 @@ This stands for 5 dots to 8 lines which depict each character.
 
 To ease generation of such characters [[https://omerk.github.io/lcdchargen/][lcdchargen]] app could be used.
 
-After defining characters LCD should go over init cycle again to avoid any display
-artefacts.
+After defining characters ~return_home~ function must be executed again.
 
 ** References
 
